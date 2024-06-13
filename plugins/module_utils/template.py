@@ -102,3 +102,19 @@ class MSOTemplate:
             msg = "Provided DHCP Relay Policy '{0}' not matching existing dhcp_option_policy(s): {1}".format(dhcp_option_policy, ", ".join(existing))
             self.mso.fail_json(msg=msg)
         return match
+
+    def get_dhcp_relay_policy(self, relay_policy_list, dhcp_relay_policy, uuid=True, fail_module=False):
+        """
+        Get template dhcp relay policy item that matches the name of an dhcp_relay_policy.
+        :param relay_policy_list: List of existing dhcp_relay_policy(s). -> List[Dict]
+        :param dhcp_relay_policy: Name of the dhcp_relay_policy to match. -> Str
+        :param uuid: Search by uuid instead of name. -> Bool
+        :param fail_module: When match is not found fail the ansible module. -> Bool
+        :return: Template dhcp_relay_policy item. -> Item(Int, Dict) | None
+        """
+        kv_list = [KVPair("uuid" if uuid else "name", dhcp_relay_policy)]
+        match, existing = self.get_object_from_list(relay_policy_list, kv_list)
+        if not match and fail_module:
+            msg = "Provided DHCP Relay Policy '{0}' not matching existing dhcp_relay_policy(s): {1}".format(dhcp_relay_policy, ", ".join(existing))
+            self.mso.fail_json(msg=msg)
+        return match
