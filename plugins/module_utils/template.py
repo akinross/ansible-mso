@@ -87,34 +87,29 @@ class MSOTemplate:
         if self.template.get("templateType") != template_type:
             self.mso.fail_json(msg="Template type must be '{0}'.".format(template_type))
 
-    def get_dhcp_option_policy(self, option_policy_list, dhcp_option_policy, uuid=True, fail_module=False):
+    def get_object_by_key_value_pairs(self, object_description, search_list, kv_list, fail_module=False):
         """
-        Get template dhcp option policy item that matches the name of an dhcp_option_policy.
-        :param option_policy_list: List of existing dhcp_option_policy(s). -> List[Dict]
-        :param dhcp_option_policy: Name or UUID of the dhcp_option_policy to match. -> Str
-        :param uuid: Search by uuid instead of name. -> Bool
+        Get the object from a list of mso object dictionaries by name.
+        :param object_description: Description of the object to search for -> Str
+        :param search_list: Objects to search through -> List.
+        :param kv_list: Key/value pairs that should match in the object. -> List[KVPair(Str, Str)]
         :param fail_module: When match is not found fail the ansible module. -> Bool
-        :return: Template dhcp_option_policy item. -> Item(Int, Dict) | None
+        :return: The object. -> Dict | None
         """
-        kv_list = [KVPair("uuid" if uuid else "name", dhcp_option_policy)]
-        match, existing = self.get_object_from_list(option_policy_list, kv_list)
+        match, existing = self.get_object_from_list(search_list, kv_list)
         if not match and fail_module:
-            msg = "Provided DHCP Option Policy '{0}' not matching existing dhcp_option_policy(s): {1}".format(dhcp_option_policy, ", ".join(existing))
+            msg = "Provided {0} with '{1}' not matching existing object(s): {2}".format(object_description, kv_list, ", ".join(existing))
             self.mso.fail_json(msg=msg)
         return match
 
-    def get_dhcp_relay_policy(self, relay_policy_list, dhcp_relay_policy, uuid=True, fail_module=False):
+    def get_object_by_uuid(self, object_description, search_list, uuid, fail_module=False):
         """
-        Get template dhcp relay policy item that matches the name of an dhcp_relay_policy.
-        :param relay_policy_list: List of existing dhcp_relay_policy(s). -> List[Dict]
-        :param dhcp_relay_policy: Name of the dhcp_relay_policy to match. -> Str
-        :param uuid: Search by uuid instead of name. -> Bool
+        Get the object from a list of mso object dictionaries by uuid.
+        :param object_description: Description of the object to search for -> Str
+        :param search_list: Objects to search through -> List.
+        :param uuid: UUID of the object to search for -> Str
         :param fail_module: When match is not found fail the ansible module. -> Bool
-        :return: Template dhcp_relay_policy item. -> Item(Int, Dict) | None
+        :return: The object. -> Dict | None
         """
-        kv_list = [KVPair("uuid" if uuid else "name", dhcp_relay_policy)]
-        match, existing = self.get_object_from_list(relay_policy_list, kv_list)
-        if not match and fail_module:
-            msg = "Provided DHCP Relay Policy '{0}' not matching existing dhcp_relay_policy(s): {1}".format(dhcp_relay_policy, ", ".join(existing))
-            self.mso.fail_json(msg=msg)
-        return match
+        kv_list = [KVPair("uuid", uuid)]
+        return self.get_object_by_key_value_pairs(object_description, search_list, kv_list, fail_module)

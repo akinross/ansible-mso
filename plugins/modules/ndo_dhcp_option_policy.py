@@ -123,7 +123,7 @@ RETURN = r"""
 import copy
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.cisco.mso.plugins.module_utils.mso import MSOModule, mso_argument_spec
-from ansible_collections.cisco.mso.plugins.module_utils.template import MSOTemplate
+from ansible_collections.cisco.mso.plugins.module_utils.template import MSOTemplate, KVPair
 
 
 def main():
@@ -173,10 +173,12 @@ def main():
     path = "/tenantPolicyTemplate/template/dhcpOptionPolicies"
     existing_dhcp_option_policies = mso_template.template.get("tenantPolicyTemplate", {}).get("template", {}).get("dhcpOptionPolicies", [])
     if option_policy:
+        object_description = "DHCP Option Policy"
         if option_policy_uuid:
-            match = mso_template.get_dhcp_option_policy(existing_dhcp_option_policies, option_policy_uuid, True)
+            match = mso_template.get_object_by_uuid(object_description, existing_dhcp_option_policies, option_policy_uuid)
         else:
-            match = mso_template.get_dhcp_option_policy(existing_dhcp_option_policies, option_policy, False)
+            kv_list = [KVPair("name", option_policy)]
+            match = mso_template.get_object_by_key_value_pairs(object_description, existing_dhcp_option_policies, kv_list)
         if match:
             mso.existing = mso.previous = copy.deepcopy(match.details)
     else:
