@@ -99,7 +99,7 @@ class MSOTemplate:
         kv_list = [KVPair("uuid" if uuid else "name", dhcp_option_policy)]
         match, existing = self.get_object_from_list(option_policy_list, kv_list)
         if not match and fail_module:
-            msg = "Provided DHCP Relay Policy '{0}' not matching existing dhcp_option_policy(s): {1}".format(dhcp_option_policy, ", ".join(existing))
+            msg = "Provided DHCP Option Policy '{0}' not matching existing dhcp_option_policy(s): {1}".format(dhcp_option_policy, ", ".join(existing))
             self.mso.fail_json(msg=msg)
         return match
 
