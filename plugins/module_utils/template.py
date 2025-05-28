@@ -288,10 +288,10 @@ class MSOTemplate:
         :param name: Name of the Port Channel to search for -> Str
         :param fail_module: When match is not found fail the ansible module -> Bool
         :return: Dict | None | List[Dict] | List[]: The processed result which could be:
-                 When the Name is existing in the search list -> Dict
-                 When the Name is not existing in the search list -> None
-                 When the Name is None, and the search list is not empty -> List[Dict]
-                 When the Name is None, and the search list is empty -> List[]
+                 When the UUID | Name is existing in the search list -> Dict
+                 When the UUID | Name is not existing in the search list -> None
+                 When both UUID and Name are None, and the search list is not empty -> List[Dict]
+                 When both UUID and Name are None, and the search list is empty -> List[]
         """
         existing_port_channels = self.template.get("fabricResourceTemplate", {}).get("template", {}).get("portChannels", [])
         if uuid or name:  # Query a specific object
@@ -308,10 +308,10 @@ class MSOTemplate:
         :param node_id: Node ID of the Routed Interface to search for -> Str
         :param fail_module: When match is not found fail the ansible module -> Bool
         :return: Dict | None | List[Dict] | List[]: The processed result which could be:
-                 When the Name is existing in the search list -> Dict
-                 When the Name is not existing in the search list -> None
-                 When the Name is None, and the search list is not empty -> List[Dict]
-                 When the Name is None, and the search list is empty -> List[]
+                 When the pod_id | node_id is existing in the search list -> Dict
+                 When the pod_id | node_id is not existing in the search list -> None
+                 When both pod_id and node_id are None, and the search list is not empty -> List[Dict]
+                 When both pod_id and node_id are None, and the search list is empty -> List[]
         """
         existing_l3out_nodes = l3out_object.get("nodes", [])
         if pod_id and node_id:  # Query a specific object
@@ -328,10 +328,10 @@ class MSOTemplate:
         :param path_ref: Path reference of the Routed Interface to search for -> Str
         :param fail_module: When match is not found fail the ansible module -> Bool
         :return: Dict | None | List[Dict] | List[]: The processed result which could be:
-                 When the Name is existing in the search list -> Dict
-                 When the Name is not existing in the search list -> None
-                 When the Name is None, and the search list is not empty -> List[Dict]
-                 When the Name is None, and the search list is empty -> List[]
+                 When the pod_id, node_id, path | path_ref is existing in the search list -> Dict
+                 When the pod_id, node_id, path | path_ref is not existing in the search list -> None
+                 When both pod_id, node_id, path and path_ref are None, and the search list is not empty -> List[Dict]
+                 When both pod_id, node_id, path and path_ref are None, and the search list is empty -> List[]
         """
         existing_l3out_interfaces = l3out_object.get("interfaces", [])
         if (pod_id and node_id and path) or path_ref:  # Query a specific object

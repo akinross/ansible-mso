@@ -870,7 +870,7 @@ class MSOModule(object):
             # When the last interface from a node is deleted the node configuration must also be removed
             response = self.request(mso_l3out_template.template_path, method="PATCH", data=ops, ignore_errors=ignore_errors)
             # When the response matches an error string from the ignore errors we need to remove the node configuration
-            if response == ignore_errors[0]:
+            if response in ignore_errors:
                 ops.append(remove_operation)
             else:
                 return response
