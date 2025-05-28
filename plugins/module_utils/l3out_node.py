@@ -11,14 +11,14 @@ from ansible_collections.cisco.mso.plugins.module_utils.utils import append_upda
 
 
 class L3OutNode:
-    def __init__(self, details, mso_l3out_template, l3out_object, pod_id, node_id):
+    def __init__(self, details, l3out_mso_template, l3out_object, pod_id, node_id):
         self.pod_id = pod_id
         self.node_id = node_id
         self.node_router_id = details.get("node_router_id")
         self.node_group_policy = details.get("node_group_policy")
         self.use_router_id_as_loopback = details.get("use_router_id_as_loopback")
         self.node_loopback_ip = details.get("node_loopback_ip")
-        self.node = mso_l3out_template.get_l3out_nodes(l3out_object.details, self.pod_id, self.node_id)
+        self.node = l3out_mso_template.get_l3out_nodes(l3out_object.details, self.pod_id, self.node_id)
         self.path = "/l3outTemplate/l3outs/{0}/nodes/{1}".format(l3out_object.index, self.node.index if self.node else "-")
 
     def construct_node_payload(self):

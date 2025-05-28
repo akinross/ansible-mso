@@ -410,23 +410,23 @@ def main():
     target_dscp = mso.params.get("target_dscp")
     state = mso.params.get("state")
 
-    mso_l3out_template = mso_templates.get_template("l3out", template_name, template_id)
-    mso_l3out_template.validate_template("l3out")
-    l3out_object = mso_l3out_template.get_l3out_object(l3out_uuid, l3out, True)
+    mso_template = mso_templates.get_template("l3out", template_name, template_id)
+    mso_template.validate_template("l3out")
+    l3out_object = mso_template.get_l3out_object(l3out_uuid, l3out, True)
 
     port_channel_uuid = None
     if port_channel:
         if port_channel.get("uuid"):
             port_channel_uuid = port_channel.get("uuid")
-            port_channel_match = mso_l3out_template.get_template_object_by_uuid("portChannel", port_channel_uuid, True)
+            port_channel_match = mso_template.get_template_object_by_uuid("portChannel", port_channel_uuid, True)
             node_id = port_channel_match.get("node")
         else:
-            fabric_resource_template = mso_templates.get_template(
+            fabric_resource_mso_template = mso_templates.get_template(
                 "fabric_resource",
                 port_channel.get("reference").get("template"),
                 port_channel.get("reference").get("template_id"),
             )
-            port_channel_match = fabric_resource_template.get_port_channel(
+            port_channel_match = fabric_resource_mso_template.get_port_channel(
                 port_channel_uuid,
                 port_channel.get("reference").get("name"),
                 fail_module=True,
@@ -437,25 +437,25 @@ def main():
     pod_id = None
     if path or port_channel:
         pod_id = mso.get_site_interface_details(
-            site_id=mso_l3out_template.template.get("l3outTemplate", {}).get("siteId"),
+            site_id=mso_template.template.get("l3outTemplate", {}).get("siteId"),
             node=node_id,
             port=path,
             port_channel_uuid=port_channel_uuid,
         ).get("pod")
 
-    match = mso_l3out_template.get_l3out_routed_interfaces(l3out_object.details, pod_id, node_id, path, port_channel_uuid)
+    match = mso_template.get_l3out_routed_interfaces(l3out_object.details, pod_id, node_id, path, port_channel_uuid)
     if (path or port_channel) and match:
-        set_routed_interface_details(mso_l3out_template, match.details, l3out_object)
+        set_routed_interface_details(mso_template, match.details, l3out_object)
         mso.existing = mso.previous = copy.deepcopy(match.details)  # Query a specific object
     elif match:
-        mso.existing = [set_routed_interface_details(mso_l3out_template, obj, l3out_object) for obj in match]
+        mso.existing = [set_routed_interface_details(mso_template, obj, l3out_object) for obj in match]
 
     l3out_interface_path = "/l3outTemplate/l3outs/{0}/interfaces/{1}".format(l3out_object.index, match.index if match else "-")
 
     ops = []
 
     if state != "query":
-        l3out_node = L3OutNode(mso.params, mso_l3out_template, l3out_object, pod_id, node_id)
+        l3out_node = L3OutNode(mso.params, mso_template, l3out_object, pod_id, node_id)
 
     if state == "present":
 
@@ -511,7 +511,7 @@ def main():
 
             # update mso.proposed with interface details that are not included in the interface payload and node details
             mso.proposed["node"] = l3out_node.construct_node_payload()
-            set_routed_interface_details(mso_l3out_template, mso.proposed, l3out_object)
+            set_routed_interface_details(mso_template, mso.proposed, l3out_object)
 
         l3out_node.update_ops(ops)
 
@@ -521,11 +521,11 @@ def main():
 
     if not mso.module.check_mode and ops:
         ignore_errors = ["node {0}-{1} doesn't have an interface configured".format(pod_id, node_id)]
-        response = mso.l3out_interface_request(mso_l3out_template, ops, ignore_errors, state, l3out_node.get_node_remove_op())
-        l3out_object = mso_l3out_template.get_l3out_object(l3out_uuid, l3out, True, search_object=response)
-        match = mso_l3out_template.get_l3out_routed_interfaces(l3out_object.details, pod_id, node_id, path, port_channel_uuid)
+        response = mso.l3out_interface_request(mso_template, ops, ignore_errors, state, l3out_node.get_node_remove_op())
+        l3out_object = mso_template.get_l3out_object(l3out_uuid, l3out, True, search_object=response)
+        match = mso_template.get_l3out_routed_interfaces(l3out_object.details, pod_id, node_id, path, port_channel_uuid)
         if match:
-            set_routed_interface_details(mso_l3out_template, match.details, l3out_object)
+            set_routed_interface_details(mso_template, match.details, l3out_object)
             mso.existing = match.details  # When the state is present
         else:
             mso.existing = {}  # When the state is absent
