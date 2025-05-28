@@ -287,7 +287,11 @@ class MSOTemplate:
         :param uuid: UUID of the Port Channel to search for -> Str
         :param name: Name of the Port Channel to search for -> Str
         :param fail_module: When match is not found fail the ansible module -> Bool
-
+        :return: Dict | None | List[Dict] | List[]: The processed result which could be:
+                 When the Name is existing in the search list -> Dict
+                 When the Name is not existing in the search list -> None
+                 When the Name is None, and the search list is not empty -> List[Dict]
+                 When the Name is None, and the search list is empty -> List[]
         """
         existing_port_channels = self.template.get("fabricResourceTemplate", {}).get("template", {}).get("portChannels", [])
         if uuid or name:  # Query a specific object
