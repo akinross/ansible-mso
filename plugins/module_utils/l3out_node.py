@@ -50,7 +50,7 @@ class L3OutNode:
         ops.append(self.get_node_add_op())
 
     def get_node_add_op(self):
-        return {"op": "add", "path": self.path, "value": delete_none_values(self.construct_node_payload())}
+        return {"op": "add", "path": self.path, "value": self.construct_node_payload()}
 
     def get_node_remove_op(self):
         return {"op": "remove", "path": self.path}
