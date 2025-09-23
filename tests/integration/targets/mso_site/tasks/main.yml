@@ -20,48 +20,13 @@
       validate_certs: '{{ mso_validate_certs | default(false) }}'
       use_ssl: '{{ mso_use_ssl | default(true) }}'
       use_proxy: '{{ mso_use_proxy | default(true) }}'
-      output_level: '{{ mso_output_level | default("info") }}'
+      output_level: '{{ mso_output_level | default("debug") }}'
 
 - name: Query MSO version
   cisco.mso.mso_version:
     <<: *mso_info
     state: query
   register: version
-
-- name: Undeploy a schema 1 template 1
-  cisco.mso.mso_schema_template_deploy: &schema_undeploy
-    <<: *mso_info
-    schema: ansible_test
-    template: Template 1
-    site: '{{ item }}'
-    state: undeploy
-  ignore_errors: true
-  loop:
-  - '{{ mso_site | default("ansible_test") }}'
-  - '{{ mso_site | default("ansible_test") }}_2'
-
-- name: Undeploy a schema 1 template 2
-  cisco.mso.mso_schema_template_deploy:
-    <<: *schema_undeploy
-    template: Template 2
-    site: '{{ item }}'
-    state: undeploy
-  ignore_errors: true
-  loop:
-  - '{{ mso_site | default("ansible_test") }}'
-  - '{{ mso_site | default("ansible_test") }}_2'
-
-- name: Undeploy a schema 2 template 3
-  cisco.mso.mso_schema_template_deploy:
-    <<: *schema_undeploy
-    schema: ansible_test_2
-    template: Template 3
-    site: '{{ item }}'
-    state: undeploy
-  ignore_errors: true
-  loop:
-  - '{{ mso_site | default("ansible_test") }}'
-  - '{{ mso_site | default("ansible_test") }}_2'
 
 - name: Remove schemas
   cisco.mso.mso_schema:
@@ -71,32 +36,22 @@
   loop:
   - '{{ mso_schema | default("ansible_test") }}_2'
   - '{{ mso_schema | default("ansible_test") }}'
-  - 'Schema1'
-  - 'Schema2'
 
-- name: Remove tenant ansible_test
-  cisco.mso.mso_tenant: &tenant_absent
+- name: Remove site from tenants
+  cisco.mso.mso_tenant_site:
     <<: *mso_info
-    tenant: ansible_test
+    tenant: '{{ item }}'
+    site: '{{ mso_site | default("ansible_test") }}'
     state: absent
-
-- name: Remove tenant ansible_test2
-  cisco.mso.mso_tenant:
-    <<: *tenant_absent
-    tenant: ansible_test2
-  register: cm_remove_tenant
+  loop:
+  - '{{ mso_tenant | default("ansible_test") }}_2'
+  - '{{ mso_tenant | default("ansible_test") }}'
 
 - name: Remove site
   cisco.mso.mso_site: &site_absent
     <<: *mso_info
     site: '{{ mso_site | default("ansible_test") }}'
     state: absent
-
-- name: Remove site 2
-  cisco.mso.mso_site:
-    <<: *site_absent
-    site: '{{ mso_site | default("ansible_test") }}_2'
-  register: cm_remove_site
 
 # ADD SITE
 - name: Add site (check_mode)
@@ -500,7 +455,7 @@
     - cm_non_existing_state is not changed
     - nm_non_existing_state is not changed
     - cm_non_existing_state == nm_non_existing_state
-    - cm_non_existing_state.msg == nm_non_existing_state.msg == "value of state must be one of{{':'}} absent, present, query, got{{':'}} non-existing-state"
+    - 'cm_non_existing_state.msg == nm_non_existing_state.msg == "value of state must be one of: absent, present, query, got: non-existing-state"'
 
 # ADD SITE
 - name: Add site (normal_mode)
@@ -535,27 +490,32 @@
     - nm_add_site_no_location.current.common.name == mso_site|default("ansible_test")
   when: version.current.version is version('3.2', '>=')
 
-- name: Execute tasks only for MSO version >= 4.0 to reset site connectivity
-  when: version.current.version is version('4.0', '>=')
-  block:
-  - name: Query all sites (check_mode)
-    cisco.mso.mso_site:
-      <<: *mso_info
-      state: query
-    register: sites
+# Commented out below part since this is not required anymore in ND 3.2 and is causing issues.
+# This was a workaround when NDO 4.0 was released where fabric connectivity was broken when sites were removed and added
+# This caused issues with site connectivity due to wrong site information being stored in connectivity parts
+# Keeping it in test as quick reference to what was done before
 
-  - name: Add sites to dict
-    ansible.builtin.set_fact:
-      site_dict: "{{ site_dict | combine( { item.common.name : { 'id' : item.id, 'site_group_id' : item.common.siteGroup } } ) }}"
-    loop: "{{ sites.current }}"
+# - name: Execute tasks only for MSO version >= 4.0 to reset site connectivity
+#   when: version.current.version is version('4.0', '>=')
+#   block:
+#   - name: Query all sites (check_mode)
+#     cisco.mso.mso_site:
+#       <<: *mso_info
+#       state: query
+#     register: sites
 
-  - name: Render a connectivity jinja2 template
-    ansible.builtin.set_fact:
-      site_payload: "{{ lookup('template', 'connectivity.j2') }}"
+#   - name: Add sites to dict
+#     ansible.builtin.set_fact:
+#       site_dict: "{{ site_dict | combine( { item.common.name : { 'id' : item.id, 'site_group_id' : item.common.siteGroup } } ) }}"
+#     loop: "{{ sites.current }}"
 
-  - name: Configure site connectivity
-    cisco.mso.mso_rest:
-      <<: *mso_info
-      path: /mso/api/v2/sites/fabric-connectivity
-      method: put
-      content: "{{ site_payload }}"
+#   - name: Render a connectivity jinja2 template
+#     ansible.builtin.set_fact:
+#       site_payload: "{{ lookup('template', 'connectivity.j2') }}"
+
+#   - name: Configure site connectivity
+#     cisco.mso.mso_rest:
+#       <<: *mso_info
+#       path: /mso/api/v2/sites/fabric-connectivity
+#       method: put
+#       content: "{{ site_payload }}"

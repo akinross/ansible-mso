@@ -27,6 +27,9 @@
     state: query
   register: version
 
+- name: Run tests to restore a clean backup as initial task for CI
+  include_tasks: restore_backup.yml
+
 - name: Clear tenant
   cisco.mso.mso_tenant: &tenant1_absent
     <<: *mso_info
@@ -225,14 +228,18 @@
       register: move_backup_nm_ab3
       ignore_errors: true
 
+    - name: Set regex match statement for move backup assertion
+      ansible.builtin.set_fact:
+        error_regex_match_move_backup: "Multiple backups with same name found. Existing backups with similar names: ansibleBackup3_[0-9]*, ansibleBackup3_[0-9]*"
+
     - name: Assertions check for move a backup from local location to remote location
       ansible.builtin.assert:
         that:
           - move_ab1_cm is changed
           - move_ab1_nm is changed
-          - move_non_existent_backup.msg is match ("Backup 'non_existent_backup' does not exist")
-          - move_backup_cm_ab3.msg is match ("Multiple backups with same name found. Existing backups with similar names{{':'}} ansibleBackup3_[0-9]*, ansibleBackup3_[0-9]*")
-          - move_backup_nm_ab3.msg is match ("Multiple backups with same name found. Existing backups with similar names{{':'}} ansibleBackup3_[0-9]*, ansibleBackup3_[0-9]*")
+          - move_non_existent_backup.msg is match("Backup 'non_existent_backup' does not exist")
+          - move_backup_cm_ab3.msg is match(error_regex_match_move_backup)
+          - move_backup_nm_ab3.msg is match(error_regex_match_move_backup)
 
 # Create Remote backup - For all version
 - name: Create ansibleBackupRemote1 in check mode

@@ -241,7 +241,7 @@ jobs:
       - name: Run integration tests on Python ${{ env.python_version }}
         run: |
           ansible-test network-integration --docker -v --color --retry-on-error --python ${{ env.python_version }} \
-            --truncate 0 --continue-on-error --coverage
+            --truncate 0 --coverage
         working-directory: /home/runner/.ansible/collections/ansible_collections/cisco/mso
 
       - name: Releasing integration mutex

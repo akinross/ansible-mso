@@ -41,13 +41,12 @@
     - name: Ensure ansible_test tenant exists
       cisco.mso.mso_tenant:
         <<: *mso_info
-        tenant: ansible_test_tenant
+        tenant: ansible_test
         users:
           - "{{ mso_username }}"
         sites:
           - '{{ mso_site | default("ansible_test") }}'
         state: present
-      register: ansible_test_tenant
       when: ansible_test_site.current.common.name == 'ansible_test'
 
     - name: Remove site from the ansible_template
@@ -74,7 +73,7 @@
         <<: *mso_info
         name: ansible_device_template
         template_type: service_device
-        tenant: ansible_test_tenant
+        tenant: ansible_test
         state: absent
 
     - name: Ensure ansible_test schema template does not exist
@@ -88,7 +87,7 @@
     - name: Add an ansible_test schema template
       cisco.mso.mso_schema_template:
         <<: *mso_schema_template_absent
-        tenant: ansible_test_tenant
+        tenant: ansible_test
         state: present
       register: schema
 
@@ -887,25 +886,29 @@
   register: nt_service_chain_8
   ignore_errors: true
 
+- name: Set error message for service chain 8
+  ansible.builtin.set_fact:
+    error_message_service_chain_8: "Provided Template Contract with '[KVPair(key='name', value='Contract1')]' not matching existing object(s): "
+
 - name: Assertion check for negative tests
   ansible.builtin.assert:
     that:
       - nt_service_chain_1 is not changed
-      - nt_service_chain_1.msg == "missing required arguments{{':'}} consumer_interface_name, device_type, provider_interface_name found in service_nodes"
+      - 'nt_service_chain_1.msg == "missing required arguments: consumer_interface_name, device_type, provider_interface_name found in service_nodes"'
       - nt_service_chain_2 is not changed
-      - nt_service_chain_2.msg == "state is present but all of the following are missing{{':'}} service_nodes"
+      - 'nt_service_chain_2.msg == "state is present but all of the following are missing: service_nodes"'
       - nt_service_chain_3 is not changed
-      - nt_service_chain_3.msg == "parameters are mutually exclusive{{':'}} uuid|device found in service_nodes"
+      - 'nt_service_chain_3.msg == "parameters are mutually exclusive: uuid|device found in service_nodes"'
       - nt_service_chain_4 is not changed
-      - nt_service_chain_4.msg == "one of the following is required{{':'}} uuid, device found in service_nodes"
+      - 'nt_service_chain_4.msg == "one of the following is required: uuid, device found in service_nodes"'
       - nt_service_chain_5 is not changed
-      - nt_service_chain_5.msg == "The schema or schema_id is required when the template is set."
+      - 'nt_service_chain_5.msg == "The schema or schema_id is required when the template is set."'
       - nt_service_chain_6 is not changed
-      - nt_service_chain_6.msg == "one of the following is required{{':'}} contract, contract_uuid"
+      - 'nt_service_chain_6.msg == "one of the following is required: contract, contract_uuid"'
       - nt_service_chain_7 is not changed
-      - nt_service_chain_7.msg == "one of the following is required{{':'}} template, template_id"
+      - 'nt_service_chain_7.msg == "one of the following is required: template, template_id"'
       - nt_service_chain_8 is not changed
-      - nt_service_chain_8.msg == "Provided Template Contract with '[KVPair(key='name', value='Contract1')]' not matching existing object(s){{':'}} "
+      - nt_service_chain_8.msg == error_message_service_chain_8
 
 # DELETE
 - name: Remove contract service chain (check_mode) - $cm_rm_service_chain
@@ -1003,7 +1006,7 @@
     <<: *mso_info
     name: ansible_device_template
     template_type: service_device
-    tenant: ansible_test_tenant
+    tenant: ansible_test
     state: absent
 
 - name: Ensure ansible_test schema template does not exist
