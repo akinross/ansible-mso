@@ -105,8 +105,18 @@
   ansible.builtin.assert:
     that:
     - error_on_invalid_path is failed
+    - error_on_invalid_path.status == 500
+  when:
+    - version.current.version is version('5.0', '>=')
+
+- name: Verify error_on_invalid_path
+  ansible.builtin.assert:
+    that:
+    - error_on_invalid_path is failed
     - error_on_invalid_path.status == 404
-  when: version.current.version is version('3.0.0a', '<') or version.current.version is version('3.2', '>=')
+  when: 
+    - (version.current.version is version('3.0.0a', '<') or version.current.version is version('3.2', '>='))
+    - version.current.version is version('5.0', '<')
 
 - name: Verify error_on_invalid_path
   ansible.builtin.assert:

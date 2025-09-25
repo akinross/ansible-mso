@@ -840,9 +840,10 @@
       <<: *new_epg
       state: absent
 
-- name: Execute tasks only for MSO version >= 4.0
+- name: Execute tasks only for MSO version >= 4.0 and < 5.0
   when:
   - version.current.version is version('4.0', '>=')
+  - version.current.version is version('5.0', '<') # in ND 4.1 no error is raised anymore and the config is set into the schema ( not visible in UI )
   block:
   - name: Add EPG service type parameters (for version greater than 4.0)
     cisco.mso.mso_schema_template_anp_epg:

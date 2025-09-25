@@ -17,7 +17,7 @@
 
 - name: Execute tasks only for ND versions 3.2 and above
   when:
-    - nd_version.current.major >= 3 and nd_version.current.minor >= 2 or nd_version.current.major > 3
+    - nd_version.current.major > 3 or (nd_version.current.major >= 3 and nd_version.current.minor >= 2)
   block:
     - name: Query backup restore information
       cisco.nd.nd_rest:
@@ -30,6 +30,9 @@
     - name: Assure that there is no restore in progress
       ansible.builtin.assert:
         that:
+          - query_restore_information.current != {}
+          - '"details" in query_restore_information.current'
+          - '"state" in query_restore_information.current'
           - query_restore_information.current.details.progress == 100
           - query_restore_information.current.state == "complete"
 
@@ -72,7 +75,10 @@
         method: get
       register: query_restore_information
       until:
+        - query_restore_information.current != {}
+        - '"details" in query_restore_information.current'
+        - '"state" in query_restore_information.current'
         - query_restore_information.current.details.progress == 100
         - query_restore_information.current.state == "complete"
-      retries: 20
-      delay: 150
+      retries: 15
+      delay: 300

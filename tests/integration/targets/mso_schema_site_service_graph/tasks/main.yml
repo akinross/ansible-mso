@@ -36,8 +36,39 @@
 
 # Service Graph at Site Level is blocked by validations in MSO/NDO before v3.3.
 # It is supported after v3.3 by using validate=false.
-- name: Execute tasks only for MSO version >= 3.3
-  when: version.current.version is version('3.3', '>=')
+# ND4.1 - NDO5+ is blocked by errors, seems related to validation but requires more investigation
+# Below is the error that is occurring on the SG test
+# name: Add a new Graph SG1 at site level (normal mode)"
+# "send_request() - connection.send(/mso/api/v1/schemas/68d5a0f5921e436c735f0c5c?validate=false, 
+# [{"op": "replace",
+#     "path": "/sites/68a426f3e8000c3a9b982fd3-Template1/serviceGraphs/SG1",
+#     "value": {
+#     "serviceNodes": [
+#         {"device": { 
+#             "dn": "uni/tn-ansible_test/lDevVip-ansible_test_firewall1", 
+#             "funcType": "GoTo"}, 
+#             "serviceNodeRef": {
+#                 "serviceNodeName": "node1",
+#                 "serviceGraphName": "SG1", 
+#                 "templateName": "Template1", 
+#                 "schemaId": "68d5a0f5921e436c735f0c5c"
+#             }
+#         }
+#     ],
+#     "serviceGraphRef": {
+#         "serviceGraphName": "SG1", 
+#         "templateName": "Template1", 
+#         "schemaId": "68d5a0f5921e436c735f0c5c"}}}],
+# PATCH, {'Content-Type': 'application/json'})"
+# "info": {
+#     "body": {
+#         "code": 400,
+#         "message": "Firewall Device  does not exist in tenant  in Fabric ansible_test on Service Graph sg2 in Template Template1 part of Schema ansible_test"
+#     },
+- name: Execute tasks only for MSO version >= 3.3 and < 5.0
+  when:
+    - version.current.version is version('3.3', '>=')
+    - version.current.version is version('5.0', '<')
   block:
     - name: Ensure site exists
       cisco.mso.mso_site:

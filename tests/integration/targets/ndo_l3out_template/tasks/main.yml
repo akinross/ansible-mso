@@ -110,7 +110,7 @@
         state: present
       register: ansible_test_policy
 
-    - name: Add a new Route Map Policy for Route Control
+    - name: Add a new Route Map Policy for Route Control (<5.0)
       cisco.mso.mso_rest:
         <<: *mso_info
         path: "/mso/api/v1/templates/{{ ansible_test_policy.current.templateId }}"
@@ -129,6 +129,27 @@
       loop:
         - ans_route_map
         - ans_route_map_2
+      when: version.current.version is version('5.0', '<')
+
+    - name: Add a new Route Map Policy for Route Control (>=5.0)
+      cisco.mso.mso_rest:
+        <<: *mso_info
+        path: "/mso/api/v1/templates/{{ ansible_test_policy.current.templateId }}"
+        method: patch
+        content:
+          - op: add
+            path: "/tenantPolicyTemplate/template/routeMapPolicies/-"
+            value:
+              name: "{{ item }}"
+              description: ""
+              contexts:
+                - order: 0
+                  name: ctxName
+                  action: permit
+      loop:
+        - ans_route_map
+        - ans_route_map_2
+      when: version.current.version is version('5.0', '>=')
 
     # Fabric Policy Template Setup for the L3Out Domain
     - name: Ensure fabric_policy template exists

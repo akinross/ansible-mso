@@ -486,82 +486,86 @@
     - nm_add_epg_5_again is changed
     - nm_add_epg_5_again.current.name == "ansible_test_5"
 
-- name: Add external EPG 6 with external epg type cloud (normal mode)
-  cisco.mso.mso_schema_template_external_epg:
-    <<: *mso_info
-    schema: '{{ mso_schema | default("ansible_test") }}'
-    template: Template 2
-    external_epg: ansible_test_6
-    type: cloud
-    vrf:
-      name: VRF
-      schema: '{{ mso_schema | default("ansible_test") }}'
-      template: Template 1
-    anp:
-      name: ANP1
-      schema: '{{ mso_schema | default("ansible_test") }}'
-      template: Template 1
-    state: present
-  register: nm_add_epg_6
+- name: Execute tasks only for MSO version < 5.0 which does not support cloud
+  when: version.current.version is version('5.0', '<')
+  block:
 
-- name: Verify nm_add_epg_6
-  ansible.builtin.assert:
-    that:
-    - nm_add_epg_6 is changed
-    - nm_add_epg_6.current.name == "ansible_test_6"
-    - nm_add_epg_6.current.vrfRef.templateName == "Template1"
-    - nm_add_epg_6.current.vrfRef.vrfName == "VRF"
-    - nm_add_epg_6.current.anpRef.anpName == "ANP1"
-
-- name: Add external EPG 6 with external epg type cloud again(normal mode)
-  cisco.mso.mso_schema_template_external_epg:
-    <<: *mso_info
-    schema: '{{ mso_schema | default("ansible_test") }}'
-    template: Template 2
-    external_epg: ansible_test_6
-    type: cloud
-    vrf:
-      name: VRF
+  - name: Add external EPG 6 with external epg type cloud (normal mode)
+    cisco.mso.mso_schema_template_external_epg:
+      <<: *mso_info
       schema: '{{ mso_schema | default("ansible_test") }}'
-      template: Template 1
-    anp:
-      name: ANP1
-      schema: '{{ mso_schema | default("ansible_test") }}'
-      template: Template 1
-    state: present
-  register: nm_add_epg_6_again
+      template: Template 2
+      external_epg: ansible_test_6
+      type: cloud
+      vrf:
+        name: VRF
+        schema: '{{ mso_schema | default("ansible_test") }}'
+        template: Template 1
+      anp:
+        name: ANP1
+        schema: '{{ mso_schema | default("ansible_test") }}'
+        template: Template 1
+      state: present
+    register: nm_add_epg_6
 
-- name: Verify nm_add_epg_6_again
-  ansible.builtin.assert:
-    that:
-    - nm_add_epg_6_again is not changed
-    - nm_add_epg_6_again.current.name == "ansible_test_6"
+  - name: Verify nm_add_epg_6
+    ansible.builtin.assert:
+      that:
+      - nm_add_epg_6 is changed
+      - nm_add_epg_6.current.name == "ansible_test_6"
+      - nm_add_epg_6.current.vrfRef.templateName == "Template1"
+      - nm_add_epg_6.current.vrfRef.vrfName == "VRF"
+      - nm_add_epg_6.current.anpRef.anpName == "ANP1"
 
-- name: Add external EPG 6 with external epg type cloud with modification(normal mode)
-  cisco.mso.mso_schema_template_external_epg:
-    <<: *mso_info
-    schema: '{{ mso_schema | default("ansible_test") }}'
-    template: Template 2
-    external_epg: ansible_test_6
-    type: cloud
-    vrf:
-      name: VRF2
+  - name: Add external EPG 6 with external epg type cloud again(normal mode)
+    cisco.mso.mso_schema_template_external_epg:
+      <<: *mso_info
       schema: '{{ mso_schema | default("ansible_test") }}'
-      template: Template 1
-    anp:
-      name: ANP1
-      schema: '{{ mso_schema | default("ansible_test") }}'
-      template: Template 1
-    state: present
-  register: nm_add_epg_6_again_2
+      template: Template 2
+      external_epg: ansible_test_6
+      type: cloud
+      vrf:
+        name: VRF
+        schema: '{{ mso_schema | default("ansible_test") }}'
+        template: Template 1
+      anp:
+        name: ANP1
+        schema: '{{ mso_schema | default("ansible_test") }}'
+        template: Template 1
+      state: present
+    register: nm_add_epg_6_again
 
-- name: Verify nm_add_epg_6_again
-  ansible.builtin.assert:
-    that:
-    - nm_add_epg_6_again_2 is changed
-    - nm_add_epg_6_again_2.current.name == "ansible_test_6"
-    - nm_add_epg_6_again_2.current.vrfRef.vrfName == "VRF2"
-    - nm_add_epg_6_again_2.current.anpRef.anpName == "ANP1"
+  - name: Verify nm_add_epg_6_again
+    ansible.builtin.assert:
+      that:
+      - nm_add_epg_6_again is not changed
+      - nm_add_epg_6_again.current.name == "ansible_test_6"
+
+  - name: Add external EPG 6 with external epg type cloud with modification(normal mode)
+    cisco.mso.mso_schema_template_external_epg:
+      <<: *mso_info
+      schema: '{{ mso_schema | default("ansible_test") }}'
+      template: Template 2
+      external_epg: ansible_test_6
+      type: cloud
+      vrf:
+        name: VRF2
+        schema: '{{ mso_schema | default("ansible_test") }}'
+        template: Template 1
+      anp:
+        name: ANP1
+        schema: '{{ mso_schema | default("ansible_test") }}'
+        template: Template 1
+      state: present
+    register: nm_add_epg_6_again_2
+
+  - name: Verify nm_add_epg_6_again
+    ansible.builtin.assert:
+      that:
+      - nm_add_epg_6_again_2 is changed
+      - nm_add_epg_6_again_2.current.name == "ansible_test_6"
+      - nm_add_epg_6_again_2.current.vrfRef.vrfName == "VRF2"
+      - nm_add_epg_6_again_2.current.anpRef.anpName == "ANP1"
 
 - name: Add external EPG 7 with external epg type on-premise explicitly mentioned again(normal mode)
   cisco.mso.mso_schema_template_external_epg:
@@ -865,19 +869,25 @@
     that:
     - nm_query_epg_5.current.l3outRef.l3outName == 'L3out'
 
-- name: Query epg 6(normal_mode)
-  cisco.mso.mso_schema_template_external_epg:
-    <<: *mso_info
-    schema: '{{ mso_schema | default("ansible_test") }}'
-    template: Template 2
-    external_epg: ansible_test_6
-    state: query
-  register: nm_query_epg_6
+- name: Execute tasks only for MSO version < 5.0 which does not support cloud
+  when: version.current.version is version('5.0', '<')
+  block:
 
-- name: Verify nm_query_epg_5
-  ansible.builtin.assert:
-    that:
-    - nm_add_epg_6.current.anpRef.anpName == "ANP1"
+  - name: Query epg 6(normal_mode)
+    cisco.mso.mso_schema_template_external_epg:
+      <<: *mso_info
+      schema: '{{ mso_schema | default("ansible_test") }}'
+      template: Template 2
+      external_epg: ansible_test_6
+      state: query
+    register: nm_query_epg_6
+
+  - name: Verify nm_query_epg_6
+    ansible.builtin.assert:
+      that:
+      - nm_query_epg_6.current.name == "ansible_test_6"
+      - nm_query_epg_6.current.vrfRef.vrfName == "VRF2"
+      - nm_query_epg_6.current.anpRef.anpName == "ANP1"
 
 # REMOVE EPG
 - name: Remove EPG 4 (check_mode)
